@@ -45,60 +45,86 @@ YEAR        = "2026"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  BANNER
+#  BANNER & ANIMATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 BANNER_ART = r"""
-  ___ _           _            ___            _    _ 
- | _ \ |_  __ _ _ _| |_ ___ _ __|   \ _ _ ___ (_)__| |
- |  _/ ' \/ _` | ' \  _/ _ \ '  \ | '_/ _ \| / _` |
- |_| |_||_\__,_|_||_\__\___/_|_|_|_||_\___/|_\__,_|
+    ____  __                __                  ____            _     __
+   / __ \/ /_  ____ _____  / /_____  ____ ___  / __ \_________ (_)___/ /
+  / /_/ / __ \/ __ `/ __ \/ __/ __ \/ __ `__ \/ / / / ___/ __ \/ / __  / 
+ / ____/ / / / /_/ / / / / /_/ /_/ / / / / / / /_/ / /  / /_/ / / /_/ /  
+/_/   /_/ /_/\__,_/_/ /_/\__/\____/_/ /_/ /_/_____/_/   \____/_/\__,_/   
 """
 
 BANNER_LINES_GRADIENT = [
-    "#9b59b6", "#8e44ad", "#7d3c98", "#6c3483",
-    "#c39bd3", "#d2b4de", "#a569bd", "#8e44ad",
-    "#ec4899", "#db2777", "#be185d",
+    "magenta", "bright_magenta", "purple", "deep_pink3", "orchid", "violet"
 ]
 
+def get_banner_status():
+    """Gather live status info for the banner."""
+    try:
+        devices = adb_manager.list_devices()
+        device_count = len(devices)
+        status_color = "green" if device_count > 0 else "red"
+        device_text = f"[{status_color}]{device_count} Connected[/]"
+    except:
+        device_text = "[yellow]ADB Not Found[/]"
 
-def _gradient_line(text: str, colors: list, index: int) -> Text:
-    color = colors[index % len(colors)]
-    t = Text(text)
-    t.stylize(f"bold {color}")
-    return t
+    from datetime import datetime
+    now = datetime.now().strftime("%H:%M:%S")
+    
+    return (
+        f"📅 [bold white]{now}[/]  |  "
+        f"📱 [bold cyan]Devices:[/] {device_text}  |  "
+        f"🚀 [bold green]v{VERSION}[/]"
+    )
 
+def animate_glitch_banner():
+    """Display a matrix/glitch reveal for the banner."""
+    from rich.markup import escape
+    lines = BANNER_ART.strip("\n").split("\n")
+    
+    # Glitch phase
+    chars = "01$#!@%^&*()_+=-[]{}|;:,.<>?/"
+    for _ in range(12):
+        glitch_lines = []
+        for line in lines:
+            glitch_line = "".join(random.choice(chars) if c != " " else " " for c in line)
+            color = random.choice(BANNER_LINES_GRADIENT)
+            # Escape the glitch line to prevent MarkupError
+            glitch_lines.append(f"[bold {color}]{escape(glitch_line)}[/]")
+        
+        console.clear()
+        for gl in glitch_lines:
+            console.print(Align.center(gl))
+        time.sleep(0.06)
 
-def print_banner():
-    """Print the animated PhantomDroid banner."""
-    os.system("clear" if os.name != "nt" else "cls")
-
-    lines = BANNER_ART.split("\n")
+    # Settling phase (line by line reveal)
+    console.clear()
     for i, line in enumerate(lines):
         color = BANNER_LINES_GRADIENT[i % len(BANNER_LINES_GRADIENT)]
-        console.print(f"[bold {color}]{line}[/]")
-        time.sleep(0.04)
+        console.print(Align.center(f"[bold {color}]{line}[/]"))
+        time.sleep(0.05)
+
+def print_banner():
+    """Print the animated PhantomDroid banner with live status."""
+    animate_glitch_banner()
 
     # Tagline
-    console.print()
-    tagline = Text("  ◈ ADVANCED ANDROID PENTESTING FRAMEWORK ◈", style="bold magenta")
+    tagline = Text("◈ ADVANCED ANDROID PENTESTING FRAMEWORK ◈", style="bold italic bright_magenta")
     console.print(Align.center(tagline))
     console.print()
 
-    # Info row
-    info_table = Table(box=None, show_header=False, padding=(0, 2))
-    info_table.add_column(style="dim cyan")
-    info_table.add_column(style="white")
-    info_table.add_row("Version",   f"[bold green]{VERSION}[/]")
-    info_table.add_row("Author",    f"[bold magenta]{AUTHOR}[/]")
-    info_table.add_row("Instagram", f"[bold cyan]{INSTAGRAM}[/]")
-    info_table.add_row("License",   "[yellow]For authorized security testing only[/]")
-
-    console.print(Panel(
-        Align.center(info_table),
+    # Status Panel
+    status_text = get_banner_status()
+    console.print(Align.center(Panel(
+        status_text,
         border_style="magenta",
-        padding=(0, 4),
-    ))
+        box=box.HORIZONTALS,
+        padding=(0, 2),
+        title="[bold magenta]System Status[/]",
+        title_align="left"
+    )))
     console.print()
 
 
@@ -796,3 +822,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         console.print("\n\n[bold magenta]👻 PhantomDroid interrupted. Stay ethical.[/]\n")
         sys.exit(0)
+
+
