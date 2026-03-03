@@ -41,6 +41,7 @@
 ```bash
 # 1. Clone / navigate to the tool directory
 cd /path/to/phantomdroid
+# or
 git clone https://github.com/psychohackers/PhantomDroid.git
 
 #2. create a virtual environment
